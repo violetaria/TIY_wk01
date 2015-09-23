@@ -1,10 +1,13 @@
 require "pry"
+require "set"
 
 word_list = [
     "cat", "chick", "duck", "cat", "clown", "brick", "bananas",
     "coffee", "totalitarianism", "metacircular", "interpreter",
     "wednesday", "ruby", "evaluation", "consternation", "chicanery"
 ]
+turn_count = 6
+answer = word_list.sample
 
 def greeting
   puts "--------------------------"
@@ -15,7 +18,7 @@ def greeting
 end
 
 def game_over?(turn_count,answer,guesses)
-  win?(answer,guesses) || turn_count==0
+  win?(answer,guesses) || turn_count.zero? # turn_count==0
 end
 
 def win?(answer,guesses)
@@ -27,17 +30,30 @@ def win?(answer,guesses)
   # winner
 end
 
-def prompt_player(guesses)
-  valid_letters = ("a".."z").to_a
+def get_letter()
   puts
   puts "Please guess a letter: "
-  guess = gets.chomp
+  gets.chomp.downcase
+end
+
+def valid_guess?(guesses, letter)
+  valid_letters = ("a".."z").to_a
+  if(!valid_letters.include?(letter))
+    puts "The guess it not a single letter between a and z!  Try again."
+    false
+  elsif(guesses.include?(letter))
+    puts "You already guessed #{letter}! Try again!"
+    false
+  else
+    true
+  end
+end
+
+def prompt_player(guesses)
   #binding.pry
-  until (valid_letters.include?(guess) && !guesses.include?(guess))
-    puts "You either repeated a previous guess or did not enter a character between a and z. Try again!"
-    puts
-    puts "Please guess a letter: "
-    guess = gets.chomp
+  guess = get_letter
+  until valid_guess?(guesses,guess)
+    guess = get_letter
   end
   guess
 end
@@ -67,6 +83,9 @@ def postmortem(answer, guesses)
   puts win?(answer,guesses) ?  "Slowclap - Congrats, YOU WON!" : "You lost which kinda sucks! Better luck next time."
   puts "The word was: #{answer}."
   puts
+end
+
+def play_again?
   puts "Play again? (y or n)"
   replay = gets.chomp.downcase
   until replay == "y" || replay == "n"
@@ -74,21 +93,26 @@ def postmortem(answer, guesses)
     puts "Play again? (y or n)"
     replay = gets.chop.downcase
   end
-  replay
+  replay == "y"
 end
 
-def hangman(word_list)
-  turn_count = 6
-  answer = word_list.sample
-  guesses = []
+def play_hangman(words,turns)
+  answer = words.sample
+  hangman(answer,turns)
+  while play_again?
+    hangman(answer,turns)
+  end
+end
+
+def hangman(answer,turn_count)
+  guesses = Set.new
   greeting
   until game_over?(turn_count,answer,guesses)
-    guess = take_turn(guesses,answer,turn_count)
-    guesses.push(guess.downcase) # accounting for upper vs. lowercase, all of our pre-set words are lowercase
+    guess = take_turn(guesses,answer,turn_count).downcase
+    guesses.add(guess) # accounting for upper vs. lowercase, all of our pre-set words are lowercase
     turn_count-=1 unless answer.include?(guess)
   end
-  replay = postmortem(answer,guesses)
-  hangman(word_list) unless replay=="n"
+  postmortem(answer,guesses)
 end
 
-hangman(word_list)
+play_hangman(word_list,turn_count)
