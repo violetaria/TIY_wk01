@@ -24,23 +24,6 @@ end
 def win?(answer,guesses)
   answer_set = answer.chars.to_set
   guesses >= answer_set
-
-  # attempt 4
-  # guesses.superset? answer_set
-
-  # attempt 3 below
-  # answer_set.subset? guesses
-
-  # attempt 2 below
-  # answer.chars.all? {|char| guesses.include?(char)}
-
-
-  # attempt 1 below
-  # # winner = true
-  # answer.chars.each.do |letter|
-  #   winner = false unless guesses.include?(letter)
-  # end
-  # winner
 end
 
 def get_letter
@@ -52,18 +35,14 @@ end
 def valid_guess?(letter)
   valid_letters = ("a".."z").to_a
   if(!valid_letters.include?(letter))
-    puts "The guess it not a single letter between a and z!  Try again."
+    puts "The guess is not a single letter between a and z!  Try again."
     false
-  # elsif(guesses.include?(letter))
-  #   puts "You already guessed #{letter}! Try again!"
-  #   false
   else
     true
   end
 end
 
 def prompt_player
-  #binding.pry
   guess = get_letter
   until valid_guess?(guess)
     guess = get_letter
@@ -121,11 +100,6 @@ end
 def turns_left(answer,guesses)
   answer_set = answer.chars.to_set
   wrong_guesses = (guesses - answer_set).count
-
-  # attempt 1
-  # wrong_guesses = guesses.difference(answer_set).count
-
-  #binding.pry
   MAX_TURNS - wrong_guesses
 end
 
@@ -133,8 +107,8 @@ def hangman(answer)
   guesses = Set.new
   greeting
   until game_over?(answer,guesses)
-    guess = take_turn(guesses,answer).downcase
-    guesses.add(guess) # accounting for upper vs. lowercase, all of our pre-set words are lowercase
+    guess = take_turn(guesses,answer).downcase # accounting for upper vs. lowercase, all of our pre-set words are lowercase
+    guesses.add(guess)
   end
   postmortem(answer,guesses)
 end
