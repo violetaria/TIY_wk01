@@ -30,12 +30,13 @@ end
 def find_funny_words(filepath)
   # putting the file.open into a do block, will automtically close the file when it leaves the block
   File.open(filepath, 'r') do |file|
-    word_groups = build_dictioßnary(file)
-    word_groups.each do |length, words|
-      words.combinations(2).each |word1, word2|
+    word_groups = build_dictionary(file)
+    word_groups.each do |length,words|
+      words.combination(2).each do |word1,word2|
         puts join_words(word1,word2) if funny_word?(word1,word2)
+      end
     end
   end
 end
 
-binding.pry
+find_funny_words("english-dict.txt")
