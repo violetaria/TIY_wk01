@@ -7,14 +7,16 @@ word_list = [
     "wednesday", "ruby", "evaluation", "consternation", "chicanery"
 ]
 MAX_TURNS = 6
-answer = word_list.sample
+player1 = nil
+player2 = nil
+DEBUG = false
 
-def greeting
+def greeting(player1, player2)
   puts "--------------------------"
   puts "Welcome to Hangman!"
+  puts "#{player1} and #{player2}, are you ready for a head to head game?"
   puts "Time to start guessing."
-  puts"--------------------------"
-  puts "\n\n"
+  puts"--------------------------\n"
 end
 
 def game_over?(answer,guesses)
@@ -28,7 +30,7 @@ end
 
 def get_letter
   puts
-  puts "Please guess a letter: "
+  print "Please guess a letter: "
   gets.chomp.downcase
 end
 
@@ -50,30 +52,26 @@ def prompt_player
   guess
 end
 
-def show_progress(partial,answer,guesses)
+def show_progress(partial,answer,guesses,current_player)
   turns_remaining = turns_left(answer, guesses)
+  puts "==> #{current_player}, it's your turn. You have #{turns_remaining} guesses left."
   puts "The current word is: #{partial}."
-  puts "You have #{turns_remaining} guesses left."
 end
 
 def make_partial(guesses,answer)
-  answer.chars.map do |letter|
-    if guesses.include?(letter)
-      letter
-    else
-      "_"
-    end
-  end
+  answer_set = answer.chars.to_set
+  missing = (answer_set - guesses).to_a.join
+  answer.gsub(/[#{missing}]/, "_")
 end
 
-def take_turn(guesses,answer)
-  partial = make_partial(guesses,answer).join
-  show_progress(partial,answer,guesses)
+def take_turn(guesses,answer,current_player)
+  partial = make_partial(guesses,answer)
+  show_progress(partial,answer,guesses,current_player)
   prompt_player
 end
 
-def postmortem(answer, guesses)
-  puts win?(answer,guesses) ?  "Slowclap - Congrats, YOU WON!" : "You lost which kinda sucks! Better luck next time."
+def postmortem(answer, guesses, current_player)
+  puts win?(answer,guesses) ?  "Slowclap - Congrats #{current_player}, YOU WON!" : "#{current_player}, you LOSE which kinda sucks! Better luck next time."
   puts "The word was: #{answer}."
   puts
 end
@@ -93,6 +91,7 @@ def play_hangman(words)
   answer = words.sample
   hangman(answer)
   while play_again?
+    answer = words.sample
     hangman(answer)
   end
 end
@@ -103,14 +102,36 @@ def turns_left(answer,guesses)
   MAX_TURNS - wrong_guesses
 end
 
+def get_name(player)
+  print "Player #{player}, please enter your name: "
+  gets.chomp
+end
+
 def hangman(answer)
-  guesses = Set.new
-  greeting
-  until game_over?(answer,guesses)
-    guess = take_turn(guesses,answer).downcase # accounting for upper vs. lowercase, all of our pre-set words are lowercase
-    guesses.add(guess)
+  player1_guesses = Set.new
+  player2_guesses = Set.new
+  player1 = get_name(1)
+  player2 = get_name(2)
+  greeting(player1, player2)
+  # player one goes first
+  current_player = player1
+  current_guesses = player1_guesses
+  until game_over?(answer,current_guesses)
+    # turn stuff for current player
+    guess = take_turn(current_guesses,answer,current_player).downcase # accounting for upper vs. lowercase, all of our pre-set words are lowercase
+    current_guesses.add(guess)
+    # switch turns
+    if(!answer.include?(guess))
+      if(current_player == player1)
+        current_guesses = player2_guesses
+        current_player = player2
+      else
+        current_guesses = player1_guesses
+        current_player = player1
+      end
+    end
   end
-  postmortem(answer,guesses)
+  postmortem(answer,current_guesses,current_player)
 end
 
 play_hangman(word_list)
