@@ -45,6 +45,11 @@ def get_player_name(player)
   gets.chomp
 end
 
+## TODO implement this!!!!!!!
+def get_picked(board,marker)
+  board.each_index.select{|i| arr[i] == marker}
+end
+
 def game_over?(picks, player1, player2)
     win?(picks[player1]) || win?(picks[player2]) || (picks[player1].length + picks[player2].length) == 9
 end
@@ -59,11 +64,25 @@ def pick_random(board)
   blanks.sample
 end
 
-def get_computer_pick(board)
+def find_win(picks)
+  binding.pry
+  pick_combos = picks[COMPUTER_NAME].sort.combination(2).to_a
+  #binding.pry
+  WINNING_BOARDS.any? do |i| (i & pick_combos) == i end
+end
+
+def get_computer_pick(board,picks)
   print "Thinking...."
   sleep(1)
   puts "Thinking...."
   sleep(1)
+  print "find_win output: "
+  puts find_win(picks)
+  # any win situations?
+  # any lose situations?
+  # is center open?
+  # opponent corner, opposite open
+  # any corner open?
 
   pick_random(board)
 end
@@ -72,9 +91,9 @@ def valid_pick?(pick,board)
   board.include?(pick) && (1..9).include?(pick)
 end
 
-def take_turn(player,board)
+def take_turn(player,board,picks)
   puts "#{player}, it's your turn!"
-  player==COMPUTER_NAME ? pick=get_computer_pick(board) : pick=get_pick
+  player==COMPUTER_NAME ? pick=get_computer_pick(board,picks) : pick=get_pick
   until valid_pick?(pick,board)
     puts "Hey! That spot has already been claimed or your entry isn't between 1 and 9!"
     # theoretically only a real player should get here
@@ -142,7 +161,7 @@ def tictactoe
   current_marker = PLAYER1_MARKER
   show_board(board)
   until game_over?(picks, player1, player2)
-    pick = take_turn(current_player,board)
+    pick = take_turn(current_player,board,picks)
     picks[current_player].push(pick)
     board = update_board(pick,current_marker,board)
     if(current_player == player1)
