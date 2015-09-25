@@ -88,11 +88,9 @@ def play_again?
 end
 
 def play_hangman(words)
-  answer = words.sample
-  hangman(answer)
+  hangman(words)
   while play_again?
-    answer = words.sample
-    hangman(answer)
+    hangman(words)
   end
 end
 
@@ -107,7 +105,8 @@ def get_name(player)
   gets.chomp
 end
 
-def hangman(answer)
+def hangman(words)
+  answer = words.sample
   player1_guesses = Set.new
   player2_guesses = Set.new
   player1 = get_name(1)
