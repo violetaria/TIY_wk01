@@ -45,8 +45,8 @@ def get_player_name(player)
   gets.chomp
 end
 
-def game_over?(player1_picks,player2_picks)
-    win?(player1_picks) || win?(player2_picks) || (player1_picks.length + player2_picks.length) == 9
+def game_over?(picks, player1, player2)
+    win?(picks[player1]) || win?(picks[player2]) || (picks[player1].length + picks[player2].length) == 9
 end
 
 def get_pick
@@ -54,21 +54,18 @@ def get_pick
   gets.chomp.to_i
 end
 
+def pick_random(board)
+  blanks = board - [PLAYER1_MARKER,PLAYER2_MARKER]
+  blanks.sample
+end
+
 def get_computer_pick(board)
   print "Thinking...."
   sleep(1)
   puts "Thinking...."
   sleep(1)
-  blanks = board - [PLAYER1_MARKER,PLAYER2_MARKER]
-  blanks.sample
-end
 
-def prompt_player(player)
-  guess = get_letter
-  until valid_guess?(guess)
-    guess = get_letter
-  end
-  guess
+  pick_random(board)
 end
 
 def valid_pick?(pick,board)
@@ -80,7 +77,8 @@ def take_turn(player,board)
   player==COMPUTER_NAME ? pick=get_computer_pick(board) : pick=get_pick
   until valid_pick?(pick,board)
     puts "Hey! That spot has already been claimed or your entry isn't between 1 and 9!"
-    player==COMPUTER_NAME ? pick=get_computer_pick(board) : pick=get_pick
+    # theoretically only a real player should get here
+    pick=get_pick
   end
   puts "#{player} chose #{pick}."
   pick
@@ -130,6 +128,10 @@ def tictactoe
   player1 = get_player_name(1)
   if(num_players==2)
     player2 = get_player_name(2)
+    until player1.downcase!=player2.downcase
+      puts "Sorry, but Player 1's name cannot equal Player 2's name!"
+      player2 = get_player_name(2)
+    end
   else
     player2 = COMPUTER_NAME
   end
@@ -139,7 +141,7 @@ def tictactoe
   current_player = player1
   current_marker = PLAYER1_MARKER
   show_board(board)
-  until game_over?(picks[player1],picks[player2])
+  until game_over?(picks, player1, player2)
     pick = take_turn(current_player,board)
     picks[current_player].push(pick)
     board = update_board(pick,current_marker,board)
