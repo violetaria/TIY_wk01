@@ -2,7 +2,7 @@ require 'pry'
 
 PLAYER1_MARKER="X"
 PLAYER2_MARKER="O"
-WINNING_BOARDS = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]]
+WINNING_BOARDS = [[1,2,3],[4,5,6],[7,8,9],[1,4,7],[2,5,8],[3,6,9],[1,5,9],[3,5,7]]
 board = (1..9).to_a
 
 def show_board(board)
@@ -41,15 +41,23 @@ def get_player_name(player)
   gets.chomp
 end
 
-def game_over?
-  ## TODO
-
+def game_over?(player1_picks,player2_picks)
+  # only check if > 3 picks or < 9
+  if((player1_picks.length + player2_picks.length) > 2)
+    win?(player1_picks) || win?(player2_picks) || (player1_picks.length + player2_picks.length) == 9
+  end
 end
 
-def get_pick(current_player)
-  print "#{current_player}, it's your turn!  Choose wisely: "
-  gets.chomp.to_i
-  ## TODO - input validation
+def get_pick(player,board)
+  print "#{player}, it's your turn!  Choose wisely: "
+  pick = gets.chomp.to_i
+  #binding.pry
+  until board.include?(pick) && (1..9).include?(pick)
+    puts "Hey! You already picked that or it isn't between 1 and 9!"
+    print "Choose again: "
+    pick = gets.chomp.to_i
+  end
+  pick
 end
 
 def update_board(pick,marker,board)
@@ -57,39 +65,59 @@ def update_board(pick,marker,board)
   board
 end
 
-def complete_game
-  ## TODO
+def win?(picks)
+  pick_combos = picks.sort.combination(3).to_a
+  !(WINNING_BOARDS & pick_combos).empty?
+end
+
+def game_results(winner,loser)
+  puts "Congrats #{winner}! You won the game!"
+  puts "Drat of all drats #{loser}! You lost :("
+
+end
+
+def complete_game(player1,player2,player1_picks,player2_picks)
+  if(win?(player1_picks))
+    game_results(player1,player2)
+  elsif(win?(player2_picks))
+    game_results(player2,player1)
+  else
+    puts "It's a draw. You both lost :/"
+  end
 end
 
 def play_again?
   ## TODO
 end
 
-def play_t3(board)
+def play_tictactoe(board)
   num_players = greeting
   player1 = get_player_name(1)
-  player2 = num_players==2 ? get_player_name(2) : "Unimatrix Zero"
+  player2 = get_player_name(2)
+  player1_picks = []
+  player2_picks = []
   current_player = player1
   current_marker = PLAYER1_MARKER
+  current_picks = player1_picks
   show_board(board)
-  until game_over?
-    pick = get_pick(current_player)
+  until game_over?(player1_picks,player2_picks)
+    pick = get_pick(current_player,board)
+    current_picks.push(pick)
     board = update_board(pick,current_marker,board)
     show_board(board)
     if(current_player == player1)
       current_player = player2
       current_marker = PLAYER2_MARKER
+      current_picks = player2_picks
     else
       current_player = player1
       current_marker = PLAYER1_MARKER
+      current_picks = player1_picks
     end
-    binding.pry
   end
-  complete_game
+  complete_game(player1,player2,player1_picks,player2_picks)
   play_again?
 end
 
-play_t3(board)
-
-#binding.pry
+play_tictactoe(board)
 
