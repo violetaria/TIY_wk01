@@ -4,6 +4,8 @@ COMPUTER_NAME = "Unimatrix Zero"
 PLAYER1_MARKER = "X"
 PLAYER2_MARKER = "O"
 WINNING_BOARDS = [[1,2,3],[4,5,6],[7,8,9],[1,4,7],[2,5,8],[3,6,9],[1,5,9],[3,5,7]]
+CENTER = [5]
+CORNERS = [1,3,7,9]
 
 def show_board(board)
   puts "\n====== Current board ======"
@@ -53,7 +55,7 @@ end
 
 def get_picked(board,marker)
   picked_spots = []
-  board.each_with_index {|value,index| picked_spots.push(index+1) if value== marker}
+  board.each_with_index {|value,index| picked_spots.push(index+1) if value==marker}
   picked_spots
 end
 
@@ -71,41 +73,45 @@ def pick_random(board)
   blanks.sample
 end
 
-def find_wins(board,marker)
-  pick_combos = get_picked(board,marker).sort.combination(2).to_a
+def find_wins(board,my_markers)
+  picks = get_picked(board,my_markers)
+  open_spots = get_open(board)
   wins = []
-  ## TODO make this better, it's very slow
-  WINNING_BOARDS.each do |win|
-    pick_combos.each do |combo|
-      wins.push((win-combo)[0]) if (win - combo).length==1
-    end
+  open_spots.each do |spot|
+    temp_array = Array.new [spot]
+    pick_combo = (picks+temp_array).sort.combination(3).to_a
+    wins.push (spot) if !(pick_combo & WINNING_BOARDS).empty?
   end
   wins
 end
 
 def get_computer_pick(board)
-  print "Thinking...."
+  puts "Thinking...."
   sleep(1)
   puts "Thinking...."
   sleep(1)
-  print "find_win output: "
   # any win situations?
   wins = find_wins(board,PLAYER2_MARKER)
   # any lose situations?
   losses = find_wins(board,PLAYER1_MARKER)
   # is center open?
   open_spots = get_open(board)
-  center = open_spots.include?(4)
+  center = open_spots & CENTER
   # opponent corner, opposite open
 
   # any corner open?
-
+  any_corner = open_spots & CORNERS
+  binding.pry
   if !wins.empty?
     wins.sample
   elsif !losses.empty?
     losses.sample
-  elsif center
-    4 #return the center position
+  elsif !center.empty?
+    CENTER[0] #return the center position
+  #elsif !opponent_corner.empty?
+  #  (CORNERS-opponent_spots).sample
+  elsif !any_corner.empty?
+    any_corner.sample
   else
     pick_random(board)
   end
@@ -116,6 +122,7 @@ def valid_pick?(pick,board)
 end
 
 def take_turn(player,board,marker)
+  show_board(board)
   puts "#{player}, it's your turn!"
   player==COMPUTER_NAME ? pick=get_computer_pick(board) : pick=get_pick
   until valid_pick?(pick,board)
@@ -129,7 +136,6 @@ end
 
 def update_board(pick,marker,board)
   board[pick-1] = marker
-  show_board(board)
   board
 end
 
@@ -146,6 +152,7 @@ def game_results(winner,loser)
 end
 
 def complete_game(board,player1,player2)
+  show_board(board)
   if(win?(board,PLAYER1_MARKER))
     game_results(player1,player2)
   elsif(win?(board,PLAYER2_MARKER))
@@ -170,18 +177,9 @@ def tictactoe
   board = (1..9).to_a
   num_players = greeting
   player1 = get_player_name(1)
-  if(num_players==2)
-    player2 = get_player_name(2)
-    until player1.downcase!=player2.downcase
-      puts "Sorry, but Player 1's name cannot equal Player 2's name!"
-      player2 = get_player_name(2)
-    end
-  else
-    player2 = COMPUTER_NAME
-  end
+  player2 = num_players==2 ? get_player_name(2) : COMPUTER_NAME
   current_player = player1
   current_marker = PLAYER1_MARKER
-  show_board(board)
   until game_over?(board)
     board = take_turn(current_player,board,current_marker)
     if(current_player == player1)
