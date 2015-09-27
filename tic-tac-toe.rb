@@ -60,7 +60,9 @@ def get_picked(board,marker)
 end
 
 def game_over?(board)
-  win?(board,PLAYER1_MARKER) || win?(board,PLAYER2_MARKER) || (get_open(board).empty?)
+  player1_picks = get_picked(board,PLAYER1_MARKER)
+  player2_picks = get_picked(board,PLAYER2_MARKER)
+  win?(player1_picks) || win?(player2_picks) || (get_open(board).empty?)
 end
 
 def get_pick
@@ -78,9 +80,9 @@ def find_wins(board,my_markers)
   open_spots = get_open(board)
   wins = []
   open_spots.each do |spot|
-    temp_array = Array.new [spot]
-    pick_combo = (picks+temp_array).sort.combination(3).to_a
-    wins.push (spot) if !(pick_combo & WINNING_BOARDS).empty?
+    potential_picks = picks.push(spot).sort
+    wins.push (spot) if win?(potential_picks)
+    picks.delete(spot)
   end
   wins
 end
@@ -90,30 +92,28 @@ def get_computer_pick(board)
   sleep(1)
   puts "Thinking...."
   sleep(1)
-  # any win situations?
   wins = find_wins(board,PLAYER2_MARKER)
-  # any lose situations?
-  losses = find_wins(board,PLAYER1_MARKER)
-  # is center open?
   open_spots = get_open(board)
-  center = open_spots & CENTER
-  # opponent corner, opposite open
-
-  # any corner open?
-  any_corner = open_spots & CORNERS
   binding.pry
   if !wins.empty?
     wins.sample
-  elsif !losses.empty?
-    losses.sample
-  elsif !center.empty?
-    CENTER[0] #return the center position
-  #elsif !opponent_corner.empty?
-  #  (CORNERS-opponent_spots).sample
-  elsif !any_corner.empty?
-    any_corner.sample
   else
-    pick_random(board)
+    losses = find_wins(board,PLAYER1_MARKER)
+    if !losses.empty?
+      losses.sample
+    else
+      center = open_spots & CENTER
+      if !center.empty?
+        CENTER[0] #return the center position
+      else
+        any_corner = open_spots & CORNERS
+        if !any_corner.empty?
+          any_corner.sample
+        else
+          pick_random(board)
+        end
+      end
+    end
   end
 end
 
@@ -121,8 +121,7 @@ def valid_pick?(pick,board)
   board.include?(pick) && (1..9).include?(pick)
 end
 
-def take_turn(player,board,marker)
-  show_board(board)
+def prompt_player(player,board)
   puts "#{player}, it's your turn!"
   player==COMPUTER_NAME ? pick=get_computer_pick(board) : pick=get_pick
   until valid_pick?(pick,board)
@@ -130,6 +129,12 @@ def take_turn(player,board,marker)
     # theoretically only a real player should get here
     pick=get_pick
   end
+  pick
+end
+
+def take_turn(player,board,marker)
+  show_board(board)
+  pick = prompt_player(player,board)
   puts "#{player} chose #{pick}."
   update_board(pick,marker,board)
 end
@@ -139,8 +144,7 @@ def update_board(pick,marker,board)
   board
 end
 
-def win?(board,marker)
-  picks = get_picked(board,marker)
+def win?(picks)
   pick_combos = picks.sort.combination(3).to_a
   !(pick_combos & WINNING_BOARDS).empty?
 end
@@ -148,14 +152,15 @@ end
 def game_results(winner,loser)
   puts "\nCongrats #{winner}! You won the game!"
   puts "Drat of all drats #{loser}! You lost :("
-
 end
 
 def complete_game(board,player1,player2)
   show_board(board)
-  if(win?(board,PLAYER1_MARKER))
+  player1_picks = get_picked(board,PLAYER1_MARKER)
+  player2_picks = get_picked(board,PLAYER2_MARKER)
+  if win?(player1_picks)
     game_results(player1,player2)
-  elsif(win?(board,PLAYER2_MARKER))
+  elsif win?(player2_picks)
     game_results(player2,player1)
   else
     puts "It's a draw. You both lost :/"
@@ -201,3 +206,23 @@ def play_tictactoe
 end
 
 play_tictactoe
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
