@@ -94,7 +94,6 @@ def get_computer_pick(board)
   sleep(1)
   wins = find_wins(board,PLAYER2_MARKER)
   open_spots = get_open(board)
-  binding.pry
   if !wins.empty?
     wins.sample
   else
