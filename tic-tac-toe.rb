@@ -148,6 +148,14 @@ def win?(picks)
   !(pick_combos & WINNING_BOARDS).empty?
 end
 
+def switch_turn(current_player,player1,player2)
+  if(current_player == player1)
+     player2
+  else
+     player1
+  end
+end
+
 def game_results(winner,loser)
   puts "\nCongrats #{winner}! You won the game!"
   puts "Drat of all drats #{loser}! You lost :("
@@ -182,17 +190,11 @@ def tictactoe
   num_players = greeting
   player1 = get_player_name(1)
   player2 = num_players==2 ? get_player_name(2) : COMPUTER_NAME
+  markers = {player1 => PLAYER1_MARKER, player2 => PLAYER2_MARKER}
   current_player = player1
-  current_marker = PLAYER1_MARKER
   until game_over?(board)
-    board = take_turn(current_player,board,current_marker)
-    if(current_player == player1)
-      current_player = player2
-      current_marker = PLAYER2_MARKER
-    else
-      current_player = player1
-      current_marker = PLAYER1_MARKER
-    end
+    board = take_turn(current_player,board,markers[current_player])
+    current_player = switch_turn(current_player,player1,player2)
   end
   complete_game(board,player1,player2)
 end
